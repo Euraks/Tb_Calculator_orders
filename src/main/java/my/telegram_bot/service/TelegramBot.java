@@ -1,7 +1,7 @@
 package my.telegram_bot.service;
 
 import my.telegram_bot.config.BotConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import my.telegram_bot.model.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -22,42 +23,74 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final String USD_BUTTON = "USD_BUTTON";
     private final String BTC_BUTTON = "BTC_BUTTON";
 
-    @Autowired
-    private PeopleService service;
 
     private final BotConfig config;
-    private boolean waitingForResponse = false;
-    private long waitingChatId;
+
+    private HashMap<Long, Order> userOrderMap = new HashMap<>();
+    Order newOrder;
+
+    private HashMap<Long, ArrayList<String>> userMap = new HashMap<>();
+    private ArrayList<Long> listOfUsers = new ArrayList<>();
 
     public TelegramBot(BotConfig config) {
         this.config = config;
     }
 
 
-
     @Override
     public void onUpdateReceived(Update update) {
+
 
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
 
+            if (!listOfUsers.contains( chatId )) {
+                listOfUsers.add( chatId );
+            } else {
+
+                ArrayList<String> answerList = new ArrayList<>();
+                if (update.hasMessage()&&(!update.getMessage().getText().equals( "/start" ))) {
+                    Order order = userOrderMap.get( chatId );
+                    if (order.getAmount() == 0.0) {
+                        double amount = Double.parseDouble( update.getMessage().getText() );
+                        order.setAmount( amount );
+                        sendMessage( chatId, " Теперь введите процент риска от 0 до 100" );
+                    } else if (order.getRisk() == 0) {
+                        int risk = Integer.parseInt( update.getMessage().getText() );
+                        order.setRisk( risk );
+                        sendMessage( chatId, " Ваш текущий баланс: " );
+                    } else if (order.getBalance() == 0) {
+                        double balance = Double.parseDouble( update.getMessage().getText() );
+                        order.setBalance( balance );
+                        String answer = "Ваши данные \n" +
+                                "Сумма вхождения        : " + order.getAmount() + "\n" +
+                                "Процент риска          : " + order.getRisk() + "\n" +
+                                "Ваш баланс             : " + order.getBalance() + "\n" +
+                                "Результат расчета      : " + order.getCalc() + "\n";
+                        sendMessage( chatId, answer );
+                    }
+
+//                    answerList.add( update.getMessage().getText() );
+                }
+//                userMap.put( chatId, answerList );
+
+            }
+
             if (messageText.equalsIgnoreCase( "/start" )) {
                 startMenu( chatId );
             }
 
-            if (messageText.equalsIgnoreCase( "/wait" )) {
-                sendMessage( chatId, "Привет! Ответьте на вопрос: Какой ваш любимый язык программирования?" );
-                waitingForResponse = true;
-                waitingChatId = chatId;
-            } else if (waitingForResponse && chatId == waitingChatId) {
-                sendMessage( chatId, "Спасибо за рубли: " + messageText );
-                waitingForResponse = false;
-            }
-
         } else if (update.hasCallbackQuery()) {
+
             String callbackData = update.getCallbackQuery().getData();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+            ArrayList<String> answerList = new ArrayList<>();
+            answerList.add( update.getCallbackQuery().getData() );
+            userMap.put( chatId, answerList );
+
+
             switch (callbackData) {
                 case CALC_BUTTON:
                     sendMessage( chatId, "Вы нажали расчет" );
@@ -65,16 +98,30 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 case ABOUT_BUTTON:
                     sendMessage( chatId, "Вы нажали о боте" );
+                    String message = " Бот создан для расчета рисков по формуле \n" +
+                            " Краткая инструкция: \n" +
+                            " Для начала введите команду /start \n" +
+                            " Далее отвечайте на вопросы и последовательно вводите данные \n" +
+                            " Спасибо. \n";
+                    sendMessage( chatId, message );
                     break;
                 case RUB_BUTTON:
-                    sendMessage(chatId, "Выбрана валюта: RUB. Введите сумму вхождения:");
-
+                    sendMessage( chatId, "Выбрана валюта: RUB. Введите сумму вхождения:" );
+                    newOrder = new Order();
+                    newOrder.setMoney( RUB_BUTTON );
+                    userOrderMap.put( chatId, newOrder );
                     break;
                 case USD_BUTTON:
-                    sendMessage( chatId, "USD_BUTTON нажата" );
+                    sendMessage( chatId, "Выбрана валюта: USD. Введите сумму вхождения:" );
+                    newOrder = new Order();
+                    newOrder.setMoney( USD_BUTTON );
+                    userOrderMap.put( chatId, newOrder );
                     break;
                 case BTC_BUTTON:
-                    sendMessage( chatId, "BTC_BUTTON нажата" );
+                    sendMessage( chatId, "Выбрана валюта: BTC. Введите сумму вхождения:" );
+                    newOrder = new Order();
+                    newOrder.setMoney( BTC_BUTTON );
+                    userOrderMap.put( chatId, newOrder );
                     break;
             }
         }
