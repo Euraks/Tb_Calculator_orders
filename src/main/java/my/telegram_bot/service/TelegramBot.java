@@ -1,11 +1,17 @@
 package my.telegram_bot.service;
 
 import my.telegram_bot.config.BotConfig;
+import my.telegram_bot.model.BotUser;
+import my.telegram_bot.model.Command;
 import my.telegram_bot.model.Order;
+import my.telegram_bot.repository.CommandRepository;
+import my.telegram_bot.repository.UserRepository;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,6 +19,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
@@ -26,24 +33,31 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
 
+    private final UserRepository userRepository;
+    private final CommandRepository commandRepository;
+
     private final HashMap<Long, Order> userOrderMap = new HashMap<>();
     Order newOrder;
 
 
-    public TelegramBot(BotConfig config) {
+    public TelegramBot(BotConfig config, UserRepository repository, CommandRepository commandRepository) {
         this.config = config;
+        this.userRepository = repository;
+        this.commandRepository = commandRepository;
     }
 
 
     @Override
     public void onUpdateReceived(Update update) {
         long chatId;
+        Long userId = getUserId( update );
 
+        if (userRepository.findById( userId ).isEmpty()) {
+            registerUser( update );
+        }
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
             chatId = update.getMessage().getChatId();
-
-
             if (update.hasMessage() && (!update.getMessage().getText().equals( "/start" ))) {
                 Order order = userOrderMap.get( chatId );
                 if (order.getAmount() == 0.0) {
@@ -54,21 +68,79 @@ public class TelegramBot extends TelegramLongPollingBot {
                     sendMessage( chatId, " Ваш текущий баланс: " );
                 } else if (order.getBalance() == 0) {
                     addBalanceToOrder( update, order );
-                    sendMessage( chatId, getAnswerToOrder( order ) );
+                    String answer = getAnswerToOrder( order );
+                    addResultUserToDataBase( update, answer );
+                    sendMessage( chatId, answer );
                 }
             }
 
             if (messageText.equalsIgnoreCase( "/start" )) {
+                addCommandToUserPlusText( update, "/start" );
                 startMenu( chatId );
             }
 
         } else if (update.hasCallbackQuery()) {
-
             String callbackData = update.getCallbackQuery().getData();
             chatId = update.getCallbackQuery().getMessage().getChatId();
-
             processCallbackData( callbackData, chatId );
         }
+    }
+
+
+    private void registerUser(Update update) {
+        User user = getMessage( update );
+        BotUser newBotUser = new BotUser( user.getId(),
+                user.getFirstName(),
+                user.getIsBot(),
+                user.getLastName(),
+                user.getUserName(),
+                user.getLanguageCode(),
+                user.getCanJoinGroups(),
+                user.getCanReadAllGroupMessages(),
+                user.getSupportInlineQueries() );
+        userRepository.save( newBotUser );
+    }
+
+    private User getMessage(Update update) {
+        if (update.hasMessage()) {
+            return update.getMessage().getFrom();
+        } else {
+            return update.getCallbackQuery().getFrom();
+        }
+    }
+
+    private Long getUserId(Update update) {
+        if (update.hasMessage()) {
+            return update.getMessage().getFrom().getId();
+        } else {
+            return update.getCallbackQuery().getFrom().getId();
+        }
+    }
+
+
+    private void addCommandToUserPlusText(Update update, String text) {
+        Long userId = update.getMessage().getFrom().getId();
+        BotUser botUser = userRepository.findById( userId ).get();
+        Message message = update.getMessage();
+        Long chatId = update.getMessage().getChatId();
+        Command command = new Command( message.getMessageId(), userId, text );
+        commandRepository.save( command );
+        botUser.getCommandList().remove( command );
+        userRepository.save( botUser );
+
+    }
+
+    private void addResultUserToDataBase(Update update, String text) {
+        Long userId = update.getMessage().getFrom().getId();
+        BotUser botUser = userRepository.findById( userId ).get();
+        Message message = update.getMessage();
+        Long chatId = update.getMessage().getChatId();
+        int randomId = message.getMessageId() + ThreadLocalRandom.current().nextInt( 0, 300 );
+        Command command = new Command( randomId, userId, text );
+        commandRepository.save( command );
+        botUser.getCommandList().remove( command );
+        userRepository.save( botUser );
+
     }
 
     private void processCallbackData(String callbackData, long chatId) {
@@ -117,17 +189,21 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void addBalanceToOrder(Update update, Order order) {
         double balance = Double.parseDouble( update.getMessage().getText() );
+        addCommandToUserPlusText( update, "Баланс : " + balance );
         order.setBalance( balance );
     }
 
     private void addRiskToOrder(Update update, Order order) {
         int risk = Integer.parseInt( update.getMessage().getText() );
+        addCommandToUserPlusText( update, "Процент риска : " + risk );
         order.setRisk( risk );
     }
 
     private void addAmountToOrder(Update update, Order order) {
         double amount = Double.parseDouble( update.getMessage().getText() );
         order.setAmount( amount );
+        addCommandToUserPlusText( update, "Сумма вхождения : " + amount );
+
     }
 
 
@@ -211,7 +287,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch(TelegramApiException e){
             e.printStackTrace();
         }
-
     }
 
     @Override
