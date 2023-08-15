@@ -9,33 +9,39 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.annotation.PostConstruct;
+
 @Log4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
+    private final UpdateController updateController;
 
-    public TelegramBot(BotConfig config) {
+    @PostConstruct
+    public void init() {
+        updateController.registerBot( this );
+    }
+
+    public TelegramBot(BotConfig config, UpdateController updateController) {
         this.config = config;
+        this.updateController = updateController;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        Message originalMessage = update.getMessage();
-        log.debug( originalMessage.getText() );
+        updateController.processUpdate( update );
     }
 
 
-    private void sendMessage(long chatId, String message) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId( String.valueOf( chatId ) );
-        sendMessage.setText( message );
-        try{
-            execute( sendMessage );
-        } catch(TelegramApiException e){
-            e.printStackTrace();
+    public void sendAnswerMessage(SendMessage sendMessage) {
+        if (sendMessage != null) {
+            try{
+                execute( sendMessage );
+            } catch(TelegramApiException e){
+                log.error( e );
+            }
         }
-
     }
 
     @Override
