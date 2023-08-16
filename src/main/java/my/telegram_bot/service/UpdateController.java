@@ -25,10 +25,14 @@ public class UpdateController {
     public void processUpdate(Update update) {
         if (update == null) {
             log.error( " Received update is null" );
-            return;
         } else {
-            SendMessage response = messageUtils.generatedSendMessageWithText( update, " Hello from UpdateController" );
-            sendMessage(  response);
+            if (update.hasMessage() && update.getMessage().hasText()) {
+                String originalMessage = update.getMessage().getText();
+                if (originalMessage.equals( "/start" )) {
+                    SendMessage response = messageUtils.startMenu( update );
+                    sendMessage( response );
+                }
+            }
         }
     }
 
