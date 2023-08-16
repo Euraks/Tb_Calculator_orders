@@ -33,8 +33,7 @@ public class UpdateController {
                 String originalMessage = update.getMessage().getText();
                 User user = userService.get( update );
                 log.debug( user );
-
-                if (originalMessage.equals( "/start" )) {
+                if (user.getCommands().equals( "/start" )) {
                     SendMessage response = messageUtils.startMenu( update );
                     sendMessage( response );
                 }

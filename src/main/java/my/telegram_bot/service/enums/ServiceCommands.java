@@ -1,8 +1,9 @@
 package my.telegram_bot.service.enums;
 
+
 public enum ServiceCommands {
     HELP( "О боте " ),
-    START( "Старт " ),
+    START( "/start " ),
     CURRENCY( "Выбор валюты " ),
     INNER_SUM( "Сумма вхождения " ),
     RISK( "Процент риска " ),
