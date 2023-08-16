@@ -26,6 +26,7 @@ public class UserService {
             return userMap.get( userId );
         } else {
             User newUser = new User();
+            newUser.setId( userId );
             newUser.setCommands( ServiceCommands.START );
             userMap.put( userId,newUser );
             return newUser;

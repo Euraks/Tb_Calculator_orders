@@ -2,6 +2,7 @@ package my.telegram_bot.service;
 
 import lombok.extern.log4j.Log4j;
 import my.telegram_bot.model.User;
+import my.telegram_bot.service.enums.ServiceCommands;
 import my.telegram_bot.utils.MessageUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -30,15 +31,48 @@ public class UpdateController {
             log.error( " Received update is null" );
         } else {
             if (update.hasMessage() && update.getMessage().hasText()) {
-                String originalMessage = update.getMessage().getText();
                 User user = userService.get( update );
                 log.debug( user );
-                if (user.getCommands().equals( "/start" )) {
-                    SendMessage response = messageUtils.startMenu( update );
-                    sendMessage( response );
+                if (user.getCommands().equals( ServiceCommands.START )) {
+                    startMenu( update );
                 }
+            } else if (update.hasCallbackQuery()) {
+                processCallbackData( update );
             }
         }
+    }
+
+    private void processCallbackData(Update update) {
+        log.debug( "Method processCallbackData() run " );
+        User user = userService.get( update );
+        String callback = update.getCallbackQuery().getData();
+        if (callback.equals( ServiceCommands.HELP.toString() ) | user.getCommands().equals( ServiceCommands.HELP )) {
+            log.debug( "Callback data == Help |  user.getCommands().equals( ServiceCommands.HELP )" );
+            user.setCommands( ServiceCommands.HELP );
+            log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.HELP );
+            infoMenu( update );
+        } else if ((callback.equals( ServiceCommands.CURRENCY.toString() ) &&
+                (user.getCommands().equals( ServiceCommands.START ))) |
+                user.getCommands().equals( ServiceCommands.CURRENCY )) {
+            log.debug( "Callback data == CURRENCY |  user.getCommands().equals( ServiceCommands.CURRENCY )" );
+            user.setCommands( ServiceCommands.CURRENCY );
+            currencyMenuOption( update );
+        }
+    }
+
+    private void currencyMenuOption(Update update) {
+        SendMessage response = messageUtils.currencyMenu( update );
+        sendMessage( response );
+    }
+
+    private void infoMenu(Update update) {
+        SendMessage response = messageUtils.infoMenu( update );
+        sendMessage( response );
+    }
+
+    private void startMenu(Update update) {
+        SendMessage response = messageUtils.startMenu( update );
+        sendMessage( response );
     }
 
     private void sendMessage(SendMessage sendMessage) {

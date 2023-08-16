@@ -2,9 +2,9 @@ package my.telegram_bot.service.enums;
 
 
 public enum ServiceCommands {
-    HELP( "О боте " ),
+    HELP( "/info " ),
     START( "/start " ),
-    CURRENCY( "Выбор валюты " ),
+    CURRENCY( "/curenncy " ),
     INNER_SUM( "Сумма вхождения " ),
     RISK( "Процент риска " ),
     BALANCE( "Баланс " );
@@ -16,7 +16,10 @@ public enum ServiceCommands {
     }
 
     public boolean equals(String value) {
-        return this.value.toString().equals( value );
+        return this.value.compareTo( value )>0;
     }
 
+    public String getValue() {
+        return value;
+    }
 }
