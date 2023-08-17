@@ -41,30 +41,7 @@ public class MessageUtils {
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Здравствуйте выберете пункт для начала работы" );
 
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        List<InlineKeyboardButton> rowInline = new ArrayList<>();
-
-        InlineKeyboardButton calc_button = new InlineKeyboardButton();
-        calc_button.setText( "Рассчитать стоимость" );
-        calc_button.setCallbackData( ServiceCommands.CURRENCY.toString() );
-
-        InlineKeyboardButton about_button = new InlineKeyboardButton();
-        about_button.setText( "О боте" );
-        about_button.setCallbackData( ServiceCommands.HELP.toString() );
-
-        rowInline.add( calc_button );
-        rowInline.add( about_button );
-
-        rowsInline.add( rowInline );
-
-        markup.setKeyboard( rowsInline );
-        sendMessage.setReplyMarkup( markup );
-        log.debug( "Start Menu view - ok" );
-        User user = userService.get( update );
-        user.setCommands( ServiceCommands.START );
-        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
-        return sendMessage;
+        return startMenu( update, sendMessage );
     }
 
     public SendMessage infoMenu(Update update) {
@@ -184,6 +161,50 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( answer );
+        return sendMessage;
+    }
+
+    public SendMessage timeoutMessage(Update update) {
+        Long chatId = getChatId( update );
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId( String.valueOf( chatId ) );
+        sendMessage.setText( "Время сессии истекло начните с команды /start" );
+
+        return sendMessage;
+    }
+
+    private Long getChatId(Update update) {
+        if (update.hasMessage()) {
+            return update.getMessage().getChatId();
+        } else {
+            return update.getCallbackQuery().getMessage().getChatId();
+        }
+    }
+
+    private SendMessage startMenu(Update update, SendMessage sendMessage) {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+
+        InlineKeyboardButton calc_button = new InlineKeyboardButton();
+        calc_button.setText( "Рассчитать стоимость" );
+        calc_button.setCallbackData( ServiceCommands.CURRENCY.toString() );
+
+        InlineKeyboardButton about_button = new InlineKeyboardButton();
+        about_button.setText( "О боте" );
+        about_button.setCallbackData( ServiceCommands.HELP.toString() );
+
+        rowInline.add( calc_button );
+        rowInline.add( about_button );
+
+        rowsInline.add( rowInline );
+
+        markup.setKeyboard( rowsInline );
+        sendMessage.setReplyMarkup( markup );
+        log.debug( "Start Menu view - ok" );
+        User user = userService.get( update );
+        user.setCommands( ServiceCommands.START );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
         return sendMessage;
     }
 }

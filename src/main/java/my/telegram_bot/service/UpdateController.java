@@ -41,11 +41,18 @@ public class UpdateController {
                     setRisk( update );
                 }else if (user.getCommands().equals( ServiceCommands.BALANCE )) {
                     setBalance( update );
+                }else if (user.getCommands().equals( ServiceCommands.TIMEOUT )) {
+                    timeOut( update );
                 }
             } else if (update.hasCallbackQuery()) {
                 processCallbackData( update );
             }
         }
+    }
+
+    private void timeOut(Update update) {
+        SendMessage response = messageUtils.timeoutMessage( update );
+        sendMessage( response );
     }
 
     private void setBalance(Update update) {
@@ -75,35 +82,39 @@ public class UpdateController {
     private void processCallbackData(Update update) {
         User user = userService.get( update );
         String callback = update.getCallbackQuery().getData();
-        if (callback.equals( ServiceCommands.HELP.toString() ) | user.getCommands().equals( ServiceCommands.HELP )) {
-            log.debug( " Received command \" help \" " );
-            user.setCommands( ServiceCommands.HELP );
-            log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.HELP );
-            infoMenu( update );
-        } else if ((callback.equals( ServiceCommands.CURRENCY.toString() ) &&
-                (user.getCommands().equals( ServiceCommands.START ))) |
-                user.getCommands().equals( ServiceCommands.CURRENCY )) {
-            log.debug( " Received command \" currency \" " );
-            user.setCommands( ServiceCommands.CURRENCY );
-            currencyMenuOption( update );
-        } else if ((callback.equals( ServiceCommands.RUB.toString() ) &&
-                (user.getCommands().equals( ServiceCommands.START ))) |
-                user.getCommands().equals( ServiceCommands.RUB )) {
-            log.debug( " Received command \" RUB \" " );
-            user.setCommands( ServiceCommands.RUB );
-            createNewOrder( ServiceCommands.RUB, update );
-        } else if ((callback.equals( ServiceCommands.USD.toString() ) &&
-                (user.getCommands().equals( ServiceCommands.START ))) |
-                user.getCommands().equals( ServiceCommands.USD )) {
-            log.debug( " Received command \" RUB \" " );
-            user.setCommands( ServiceCommands.USD );
-            createNewOrder( ServiceCommands.USD, update );
-        } else if ((callback.equals( ServiceCommands.BTC.toString() ) &&
-                (user.getCommands().equals( ServiceCommands.START ))) |
-                user.getCommands().equals( ServiceCommands.BTC )) {
-            log.debug( " Received command \" RUB \" " );
-            user.setCommands( ServiceCommands.BTC );
-            createNewOrder( ServiceCommands.BTC, update );
+        if (!user.getCommands().equals( ServiceCommands.TIMEOUT )) {
+            if (callback.equals( ServiceCommands.HELP.toString() ) | user.getCommands().equals( ServiceCommands.HELP )) {
+                log.debug( " Received command \" help \" " );
+                user.setCommands( ServiceCommands.HELP );
+                log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.HELP );
+                infoMenu( update );
+            } else if ((callback.equals( ServiceCommands.CURRENCY.toString() ) &&
+                    (user.getCommands().equals( ServiceCommands.START ))) |
+                    user.getCommands().equals( ServiceCommands.CURRENCY )) {
+                log.debug( " Received command \" currency \" " );
+                user.setCommands( ServiceCommands.CURRENCY );
+                currencyMenuOption( update );
+            } else if ((callback.equals( ServiceCommands.RUB.toString() ) &&
+                    (user.getCommands().equals( ServiceCommands.START ))) |
+                    user.getCommands().equals( ServiceCommands.RUB )) {
+                log.debug( " Received command \" RUB \" " );
+                user.setCommands( ServiceCommands.RUB );
+                createNewOrder( ServiceCommands.RUB, update );
+            } else if ((callback.equals( ServiceCommands.USD.toString() ) &&
+                    (user.getCommands().equals( ServiceCommands.START ))) |
+                    user.getCommands().equals( ServiceCommands.USD )) {
+                log.debug( " Received command \" RUB \" " );
+                user.setCommands( ServiceCommands.USD );
+                createNewOrder( ServiceCommands.USD, update );
+            } else if ((callback.equals( ServiceCommands.BTC.toString() ) &&
+                    (user.getCommands().equals( ServiceCommands.START ))) |
+                    user.getCommands().equals( ServiceCommands.BTC )) {
+                log.debug( " Received command \" RUB \" " );
+                user.setCommands( ServiceCommands.BTC );
+                createNewOrder( ServiceCommands.BTC, update );
+            }
+        } else {
+            timeOut( update );
         }
     }
 

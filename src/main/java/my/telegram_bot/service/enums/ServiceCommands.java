@@ -8,6 +8,7 @@ public enum ServiceCommands {
     INNER_SUM( "Сумма вхождения " ),
     RISK( "Процент риска " ),
     BALANCE( "Баланс " ),
+    TIMEOUT("Время сессии закончилось"),
     RUB( "RUB" ),
     USD( "USD" ),
     BTC( "BTC" );
