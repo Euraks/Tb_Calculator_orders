@@ -32,8 +32,8 @@ public class UpdateController {
         } else {
             if (update.hasMessage() && update.getMessage().hasText()) {
                 User user = userService.get( update );
-                log.debug( user );
-                if (user.getCommands().equals( ServiceCommands.START )) {
+                if (user.getCommands().equals( ServiceCommands.START ) | update.getMessage().getText().equals( "/start" )) {
+                    log.debug( " Received command \" /start\" " );
                     startMenu( update );
                 }
             } else if (update.hasCallbackQuery()) {
@@ -43,31 +43,47 @@ public class UpdateController {
     }
 
     private void processCallbackData(Update update) {
-        log.debug( "Method processCallbackData() run " );
         User user = userService.get( update );
         String callback = update.getCallbackQuery().getData();
         if (callback.equals( ServiceCommands.HELP.toString() ) | user.getCommands().equals( ServiceCommands.HELP )) {
-            log.debug( "Callback data == Help |  user.getCommands().equals( ServiceCommands.HELP )" );
+            log.debug( " Received command \" help \" " );
             user.setCommands( ServiceCommands.HELP );
             log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.HELP );
             infoMenu( update );
         } else if ((callback.equals( ServiceCommands.CURRENCY.toString() ) &&
                 (user.getCommands().equals( ServiceCommands.START ))) |
                 user.getCommands().equals( ServiceCommands.CURRENCY )) {
-            log.debug( "Callback data == CURRENCY |  user.getCommands().equals( ServiceCommands.CURRENCY )" );
+            log.debug( " Received command \" currency \" " );
             user.setCommands( ServiceCommands.CURRENCY );
             currencyMenuOption( update );
+        } else if ((callback.equals( ServiceCommands.RUB.toString() ) &&
+                (user.getCommands().equals( ServiceCommands.START ))) |
+                user.getCommands().equals( ServiceCommands.RUB )) {
+            log.debug( " Received command \" RUB \" " );
+            user.setCommands( ServiceCommands.RUB );
+            createNewOrder( ServiceCommands.RUB, update );
         }
+    }
+
+    private void createNewOrder(ServiceCommands command, Update update) {
+        SendMessage response = messageUtils.createNewOrder( command, update );
+        sendMessage( response );
     }
 
     private void currencyMenuOption(Update update) {
         SendMessage response = messageUtils.currencyMenu( update );
         sendMessage( response );
+        User user = userService.get( update );
+        user.setCommands( ServiceCommands.START );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
     }
 
     private void infoMenu(Update update) {
         SendMessage response = messageUtils.infoMenu( update );
         sendMessage( response );
+        User user = userService.get( update );
+        user.setCommands( ServiceCommands.START );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
     }
 
     private void startMenu(Update update) {

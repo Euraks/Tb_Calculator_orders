@@ -1,9 +1,9 @@
 package my.telegram_bot.utils;
 
 import lombok.extern.log4j.Log4j;
+import my.telegram_bot.model.Order;
 import my.telegram_bot.model.User;
 import my.telegram_bot.service.UserService;
-import my.telegram_bot.service.enums.Currency;
 import my.telegram_bot.service.enums.ServiceCommands;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -61,6 +61,9 @@ public class MessageUtils {
         markup.setKeyboard( rowsInline );
         sendMessage.setReplyMarkup( markup );
         log.debug( "Start Menu view - ok" );
+        User user = userService.get( update );
+        user.setCommands( ServiceCommands.START );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
         return sendMessage;
     }
 
@@ -75,9 +78,7 @@ public class MessageUtils {
                 " Далее отвечайте на вопросы и последовательно вводите данные \n" +
                 " Спасибо. \n";
         sendMessage.setText( message );
-        User user = userService.get( update );
-        user.setCommands( ServiceCommands.START );
-        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
+        log.debug( "Info Menu view - ok" );
 
         return sendMessage;
     }
@@ -94,15 +95,15 @@ public class MessageUtils {
 
         InlineKeyboardButton RUB_button = new InlineKeyboardButton();
         RUB_button.setText( "RUB" );
-        RUB_button.setCallbackData( Currency.RUB.toString() );
+        RUB_button.setCallbackData( ServiceCommands.RUB.toString() );
 
         InlineKeyboardButton USD_button = new InlineKeyboardButton();
         USD_button.setText( "USD" );
-        USD_button.setCallbackData( Currency.USD.toString() );
+        USD_button.setCallbackData( ServiceCommands.USD.toString() );
 
         InlineKeyboardButton BTC_button = new InlineKeyboardButton();
         BTC_button.setText( "BTC" );
-        BTC_button.setCallbackData( Currency.BTC.toString() );
+        BTC_button.setCallbackData( ServiceCommands.BTC.toString() );
 
         rowInline.add( RUB_button );
         rowInline.add( USD_button );
@@ -116,6 +117,21 @@ public class MessageUtils {
         User user = userService.get( update );
         user.setCommands( ServiceCommands.CURRENCY );
         log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.CURRENCY );
+
+        return sendMessage;
+    }
+
+    public SendMessage createNewOrder(ServiceCommands currency, Update update) {
+        User user = userService.get( update );
+        Order newOrder = new Order();
+        newOrder.setMoney( currency.toString() );
+        user.setOrder( newOrder );
+        user.setCommands( currency );
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getCallbackQuery().getFrom().getId();
+        sendMessage.setChatId( String.valueOf( chatId ) );
+        sendMessage.setText( "Выбрана валюта RUB добавьте сумму вхождения" );
+        log.debug( "User " + user.getId() + " setCommands " + currency );
 
         return sendMessage;
     }

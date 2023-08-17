@@ -7,7 +7,10 @@ public enum ServiceCommands {
     CURRENCY( "/curenncy " ),
     INNER_SUM( "Сумма вхождения " ),
     RISK( "Процент риска " ),
-    BALANCE( "Баланс " );
+    BALANCE( "Баланс " ),
+    RUB( "RUB" ),
+    USD( "USD" ),
+    BTC( "BTC" );
 
     private final String value;
 

@@ -28,6 +28,8 @@ public class User {
 
     private ServiceCommands commands = ServiceCommands.START;
 
+    private Order order;
+
     private LocalTime timeLastCommands ;
 
     public void setCommands(ServiceCommands commands) {
