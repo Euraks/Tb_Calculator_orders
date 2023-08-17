@@ -130,9 +130,60 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         Long chatId = update.getCallbackQuery().getFrom().getId();
         sendMessage.setChatId( String.valueOf( chatId ) );
-        sendMessage.setText( "Выбрана валюта RUB добавьте сумму вхождения" );
+        sendMessage.setText( "Выбрана валюта " + currency + " добавьте сумму вхождения" );
         log.debug( "User " + user.getId() + " setCommands " + currency );
 
+        return sendMessage;
+    }
+
+    public SendMessage innerSum(Update update) {
+        log.debug( "set Inner Sum " );
+        Long chatId = update.getMessage().getFrom().getId();
+        double innerSum = Double.parseDouble( update.getMessage().getText() );
+        User user = userService.get( update );
+        Order order = user.getOrder();
+        order.setInnerSum( innerSum );
+
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId( String.valueOf( chatId ) );
+        sendMessage.setText( "Сумма вхождения " + innerSum + " теперь введите процент риска от 0 до 100" );
+        return sendMessage;
+    }
+
+    public SendMessage setRisk(Update update) {
+
+        log.debug( "set Risk " );
+        Long chatId = update.getMessage().getFrom().getId();
+        double risk = Double.parseDouble( update.getMessage().getText() );
+        User user = userService.get( update );
+        Order order = user.getOrder();
+        order.setRisk( risk );
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId( String.valueOf( chatId ) );
+        sendMessage.setText( "Процент риска установлен " + risk + " теперь введите ваш текущий баланс" );
+        return sendMessage;
+
+    }
+
+    public SendMessage setBalance(Update update) {
+        log.debug( "set Balance " );
+        Long chatId = update.getMessage().getFrom().getId();
+        double balance = Double.parseDouble( update.getMessage().getText() );
+        User user = userService.get( update );
+        Order order = user.getOrder();
+        order.setBalance( balance );
+
+        String answer = "Ваши данные \n" +
+                "Сумма вхождения        : " + order.getInnerSum() + "\n" +
+                "Процент риска          : " + order.getRisk() + "\n" +
+                "Ваш баланс             : " + order.getBalance() + "\n" +
+                "Результат расчета      : " + order.getCalc() + "\n";
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId( String.valueOf( chatId ) );
+        sendMessage.setText( answer );
         return sendMessage;
     }
 }

@@ -35,11 +35,41 @@ public class UpdateController {
                 if (user.getCommands().equals( ServiceCommands.START ) | update.getMessage().getText().equals( "/start" )) {
                     log.debug( " Received command \" /start\" " );
                     startMenu( update );
+                } else if (user.getCommands().equals( ServiceCommands.INNER_SUM )) {
+                    setInnerSum( update );
+                } else if (user.getCommands().equals( ServiceCommands.RISK )) {
+                    setRisk( update );
+                }else if (user.getCommands().equals( ServiceCommands.BALANCE )) {
+                    setBalance( update );
                 }
             } else if (update.hasCallbackQuery()) {
                 processCallbackData( update );
             }
         }
+    }
+
+    private void setBalance(Update update) {
+        SendMessage response = messageUtils.setBalance( update );
+        sendMessage( response );
+        User user = userService.get( update );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
+        user.setCommands( ServiceCommands.START );
+    }
+
+    private void setRisk(Update update) {
+        SendMessage response = messageUtils.setRisk( update );
+        sendMessage( response );
+        User user = userService.get( update );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.BALANCE );
+        user.setCommands( ServiceCommands.BALANCE );
+    }
+
+    private void setInnerSum(Update update) {
+        SendMessage response = messageUtils.innerSum( update );
+        sendMessage( response );
+        User user = userService.get( update );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.RISK );
+        user.setCommands( ServiceCommands.RISK );
     }
 
     private void processCallbackData(Update update) {
@@ -62,12 +92,27 @@ public class UpdateController {
             log.debug( " Received command \" RUB \" " );
             user.setCommands( ServiceCommands.RUB );
             createNewOrder( ServiceCommands.RUB, update );
+        } else if ((callback.equals( ServiceCommands.USD.toString() ) &&
+                (user.getCommands().equals( ServiceCommands.START ))) |
+                user.getCommands().equals( ServiceCommands.USD )) {
+            log.debug( " Received command \" RUB \" " );
+            user.setCommands( ServiceCommands.USD );
+            createNewOrder( ServiceCommands.USD, update );
+        } else if ((callback.equals( ServiceCommands.BTC.toString() ) &&
+                (user.getCommands().equals( ServiceCommands.START ))) |
+                user.getCommands().equals( ServiceCommands.BTC )) {
+            log.debug( " Received command \" RUB \" " );
+            user.setCommands( ServiceCommands.BTC );
+            createNewOrder( ServiceCommands.BTC, update );
         }
     }
 
     private void createNewOrder(ServiceCommands command, Update update) {
         SendMessage response = messageUtils.createNewOrder( command, update );
         sendMessage( response );
+        User user = userService.get( update );
+        user.setCommands( ServiceCommands.INNER_SUM );
+        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.INNER_SUM );
     }
 
     private void currencyMenuOption(Update update) {

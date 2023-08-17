@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 public class Order {
     private String money;
     private double risk;
-    private double amount;
+    private double innerSum;
     private double balance;
 
     public double getCalc() {
-        return (balance / 10) * (risk / 100) + amount;
+        return (balance / 10) * (risk / 100) + innerSum;
     }
 }
