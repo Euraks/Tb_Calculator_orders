@@ -17,57 +17,65 @@ public class CommandsManager implements BotCommands {
 
     @Override
     public ServiceCommands get(Update update) {
+
         User user = userService.get( update );
+
         if (update.hasMessage() && update.getMessage().hasText()) {
+
             String message = update.getMessage().getText();
-            if (message.equals( "/start" ) ||
-                    user.getCommands().equals( ServiceCommands.START ) ||
+
+            if (message.equals( "/start" ) || user.getCommands().equals( ServiceCommands.START ) ||
                     user.getCommands().equals( ServiceCommands.TIMEOUT )) {
                 log.debug( " Received command \" start \" " );
                 user.setCommands( ServiceCommands.START );
                 return ServiceCommands.START;
             }
-
+            if (user.getCommands().equals( ServiceCommands.INNER_SUM )) {
+                log.debug( " Received command \" INNER_SUM \" " );
+                return ServiceCommands.INNER_SUM;
+            }
+            if (user.getCommands().equals( ServiceCommands.RISK )) {
+                log.debug( " Received command \" RISK \" " );
+                return ServiceCommands.RISK;
+            }
+            if (user.getCommands().equals( ServiceCommands.BALANCE )) {
+                log.debug( " Received command \" BALANCE \" " );
+                return ServiceCommands.BALANCE;
+            }
         } else if (update.hasCallbackQuery()) {
+
             String callback = update.getCallbackQuery().getData();
+
             if (callback.equals( ServiceCommands.HELP.toString() ) | user.getCommands().equals( ServiceCommands.HELP )) {
                 log.debug( " Received command \" help \" " );
-
                 user.setCommands( ServiceCommands.START );
-
                 return ServiceCommands.HELP;
             }
             if (callback.equals( ServiceCommands.CURRENCY.toString() ) &&
                     (user.getCommands().equals( ServiceCommands.START ))) {
                 log.debug( " Received command \" currency \" " );
-
                 user.setCommands( ServiceCommands.CURRENCY );
-
                 return ServiceCommands.CURRENCY;
             }
             if ((callback.equals( ServiceCommands.RUB.toString() ) &&
                     (user.getCommands().equals( ServiceCommands.CURRENCY ))) |
                     user.getCommands().equals( ServiceCommands.RUB )) {
                 log.debug( " Received command \" RUB \" " );
-
                 user.setCommands( ServiceCommands.RUB );
-
                 return ServiceCommands.RUB;
+
             } else if ((callback.equals( ServiceCommands.USD.toString() ) &&
                     (user.getCommands().equals( ServiceCommands.CURRENCY ))) |
                     user.getCommands().equals( ServiceCommands.USD )) {
                 log.debug( " Received command \" USD \" " );
-
                 user.setCommands( ServiceCommands.USD );
-
                 return ServiceCommands.USD;
+
             } else if ((callback.equals( ServiceCommands.BTC.toString() ) &&
                     (user.getCommands().equals( ServiceCommands.CURRENCY ))) |
                     user.getCommands().equals( ServiceCommands.BTC )) {
                 log.debug( " Received command \" BTC \" " );
-
                 user.setCommands( ServiceCommands.BTC );
-
                 return ServiceCommands.BTC;
             }
             return ServiceCommands.TIMEOUT;

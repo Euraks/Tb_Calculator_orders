@@ -93,6 +93,7 @@ public class MessageUtils {
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Выбрана валюта " + currency + " добавьте сумму вхождения" );
         log.debug( "User " + user.getId() + " setCommands " + currency );
+        user.setCommands( ServiceCommands.INNER_SUM );
         return sendMessage;
     }
 
@@ -107,6 +108,7 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Сумма вхождения " + innerSum + " теперь введите процент риска от 0 до 100" );
+        user.setCommands( ServiceCommands.RISK );
         return sendMessage;
     }
 
@@ -122,6 +124,7 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Процент риска установлен " + risk + " теперь введите ваш текущий баланс" );
+        user.setCommands( ServiceCommands.BALANCE );
         return sendMessage;
 
     }
@@ -143,6 +146,7 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( answer );
+        user.setCommands( ServiceCommands.START );
         return sendMessage;
     }
 

@@ -19,8 +19,6 @@ public class UserService {
         Long userId = getId( update );
         if (userMap.containsKey( userId )) {
             User user = userMap.get( userId );
-            log.debug( user.getTimeLastCommands() );
-            log.debug( LocalTime.now().minusSeconds( 10 ) );
             if (user.getTimeLastCommands().isBefore( LocalTime.now().minusSeconds( 150 ) )){
                 user.setCommands( ServiceCommands.TIMEOUT);
             }

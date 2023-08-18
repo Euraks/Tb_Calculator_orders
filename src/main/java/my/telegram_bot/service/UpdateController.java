@@ -1,7 +1,6 @@
 package my.telegram_bot.service;
 
 import lombok.extern.log4j.Log4j;
-import my.telegram_bot.model.User;
 import my.telegram_bot.service.commands.CommandsManager;
 import my.telegram_bot.service.commands.enums.ServiceCommands;
 import my.telegram_bot.utils.MessageUtils;
@@ -15,12 +14,11 @@ public class UpdateController {
 
     private TelegramBot telegramBot;
     private final MessageUtils messageUtils;
-    private final UserService userService;
     private final CommandsManager commandsManager;
 
-    public UpdateController(MessageUtils messageUtils, UserService userService, CommandsManager commandsManager) {
+    public UpdateController(MessageUtils messageUtils, CommandsManager commandsManager) {
         this.messageUtils = messageUtils;
-        this.userService = userService;
+
 
         this.commandsManager = commandsManager;
     }
@@ -34,45 +32,36 @@ public class UpdateController {
             log.error( " Received update is null" );
         } else {
             ServiceCommands serviceCommands = commandsManager.get( update );
-            if (serviceCommands.equals( ServiceCommands.START )){
+            if (serviceCommands.equals( ServiceCommands.START )) {
                 startMenu( update );
             }
-            if (serviceCommands.equals( ServiceCommands.HELP )){
+            if (serviceCommands.equals( ServiceCommands.HELP )) {
                 infoMenu( update );
             }
-            if (serviceCommands.equals( ServiceCommands.CURRENCY )){
+            if (serviceCommands.equals( ServiceCommands.CURRENCY )) {
                 currencyMenuOption( update );
             }
-            if (serviceCommands.equals( ServiceCommands.RUB )){
-                createNewOrder( ServiceCommands.RUB,update );
+            if (serviceCommands.equals( ServiceCommands.RUB )) {
+                createNewOrder( ServiceCommands.RUB, update );
             }
-            if (serviceCommands.equals( ServiceCommands.USD )){
-                createNewOrder( ServiceCommands.USD,update );
+            if (serviceCommands.equals( ServiceCommands.USD )) {
+                createNewOrder( ServiceCommands.USD, update );
             }
-            if (serviceCommands.equals( ServiceCommands.BTC )){
-                createNewOrder( ServiceCommands.BTC,update );
+            if (serviceCommands.equals( ServiceCommands.BTC )) {
+                createNewOrder( ServiceCommands.BTC, update );
             }
-            if (serviceCommands.equals( ServiceCommands.TIMEOUT )){
-                timeOut(update);
+            if (serviceCommands.equals( ServiceCommands.INNER_SUM )) {
+                setInnerSum( update );
             }
-
-//            if (update.hasMessage() && update.getMessage().hasText()) {
-//                User user = userService.get( update );
-//                if (user.getCommands().equals( ServiceCommands.START ) | update.getMessage().getText().equals( "/start" )) {
-//                    log.debug( " Received command \" /start\" " );
-//                    startMenu( update );
-//                } else if (user.getCommands().equals( ServiceCommands.INNER_SUM )) {
-//                    setInnerSum( update );
-//                } else if (user.getCommands().equals( ServiceCommands.RISK )) {
-//                    setRisk( update );
-//                }else if (user.getCommands().equals( ServiceCommands.BALANCE )) {
-//                    setBalance( update );
-//                }else if (user.getCommands().equals( ServiceCommands.TIMEOUT )) {
-//                    timeOut( update );
-//                }
-//            } else if (update.hasCallbackQuery()) {
-//                processCallbackData( update );
-//            }
+            if (serviceCommands.equals( ServiceCommands.RISK )) {
+                setRisk( update );
+            }
+            if (serviceCommands.equals( ServiceCommands.BALANCE )) {
+                setBalance( update );
+            }
+            if (serviceCommands.equals( ServiceCommands.TIMEOUT )) {
+                timeOut( update );
+            }
         }
     }
 
@@ -96,38 +85,6 @@ public class UpdateController {
         sendMessage( response );
     }
 
-    private void processCallbackData(Update update) {
-        User user = userService.get( update );
-        String callback = update.getCallbackQuery().getData();
-        if (!user.getCommands().equals( ServiceCommands.TIMEOUT )) {
-            if (callback.equals( ServiceCommands.HELP.toString() ) | user.getCommands().equals( ServiceCommands.HELP )) {
-                log.debug( " Received command \" help \" " );
-                infoMenu( update );
-            } else if ((callback.equals( ServiceCommands.CURRENCY.toString() ) &&
-                    (user.getCommands().equals( ServiceCommands.START ))) |
-                    user.getCommands().equals( ServiceCommands.CURRENCY )) {
-                log.debug( " Received command \" currency \" " );
-                currencyMenuOption( update );
-            } else if ((callback.equals( ServiceCommands.RUB.toString() ) &&
-                    (user.getCommands().equals( ServiceCommands.START ))) |
-                    user.getCommands().equals( ServiceCommands.RUB )) {
-                log.debug( " Received command \" RUB \" " );
-                createNewOrder( ServiceCommands.RUB, update );
-            } else if ((callback.equals( ServiceCommands.USD.toString() ) &&
-                    (user.getCommands().equals( ServiceCommands.START ))) |
-                    user.getCommands().equals( ServiceCommands.USD )) {
-                log.debug( " Received command \" RUB \" " );
-                createNewOrder( ServiceCommands.USD, update );
-            } else if ((callback.equals( ServiceCommands.BTC.toString() ) &&
-                    (user.getCommands().equals( ServiceCommands.START ))) |
-                    user.getCommands().equals( ServiceCommands.BTC )) {
-                log.debug( " Received command \" RUB \" " );
-                createNewOrder( ServiceCommands.BTC, update );
-            }
-        } else {
-            timeOut( update );
-        }
-    }
 
     private void createNewOrder(ServiceCommands command, Update update) {
         SendMessage response = messageUtils.createNewOrder( command, update );
