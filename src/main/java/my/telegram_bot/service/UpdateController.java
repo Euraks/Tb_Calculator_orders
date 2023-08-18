@@ -37,6 +37,25 @@ public class UpdateController {
             if (serviceCommands.equals( ServiceCommands.START )){
                 startMenu( update );
             }
+            if (serviceCommands.equals( ServiceCommands.HELP )){
+                infoMenu( update );
+            }
+            if (serviceCommands.equals( ServiceCommands.CURRENCY )){
+                currencyMenuOption( update );
+            }
+            if (serviceCommands.equals( ServiceCommands.RUB )){
+                createNewOrder( ServiceCommands.RUB,update );
+            }
+            if (serviceCommands.equals( ServiceCommands.USD )){
+                createNewOrder( ServiceCommands.USD,update );
+            }
+            if (serviceCommands.equals( ServiceCommands.BTC )){
+                createNewOrder( ServiceCommands.BTC,update );
+            }
+            if (serviceCommands.equals( ServiceCommands.TIMEOUT )){
+                timeOut(update);
+            }
+
 //            if (update.hasMessage() && update.getMessage().hasText()) {
 //                User user = userService.get( update );
 //                if (user.getCommands().equals( ServiceCommands.START ) | update.getMessage().getText().equals( "/start" )) {
