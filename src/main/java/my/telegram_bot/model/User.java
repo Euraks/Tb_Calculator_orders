@@ -1,7 +1,7 @@
 package my.telegram_bot.model;
 
 import lombok.Data;
-import my.telegram_bot.service.enums.ServiceCommands;
+import my.telegram_bot.service.commands.enums.ServiceCommands;
 
 import java.time.LocalTime;
 

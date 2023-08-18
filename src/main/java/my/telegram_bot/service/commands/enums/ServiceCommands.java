@@ -1,4 +1,4 @@
-package my.telegram_bot.service.enums;
+package my.telegram_bot.service.commands.enums;
 
 
 public enum ServiceCommands {

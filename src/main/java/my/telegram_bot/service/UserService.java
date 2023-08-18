@@ -2,9 +2,8 @@ package my.telegram_bot.service;
 
 import lombok.extern.log4j.Log4j;
 import my.telegram_bot.model.User;
-import my.telegram_bot.service.enums.ServiceCommands;
+import my.telegram_bot.service.commands.enums.ServiceCommands;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalTime;

@@ -4,10 +4,9 @@ import lombok.extern.log4j.Log4j;
 import my.telegram_bot.model.Order;
 import my.telegram_bot.model.User;
 import my.telegram_bot.service.UserService;
-import my.telegram_bot.service.enums.ServiceCommands;
+import my.telegram_bot.service.commands.enums.ServiceCommands;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -21,18 +20,10 @@ public class MessageUtils {
 
     private final UserService userService;
 
+
     public MessageUtils(UserService userService) {
         this.userService = userService;
-    }
 
-    public SendMessage generatedSendMessageWithText(Update update, String text) {
-        Message message = update.getMessage();
-        SendMessage sendMessage = new SendMessage();
-
-        sendMessage.setChatId( message.getChatId().toString() );
-        sendMessage.setText( text );
-
-        return sendMessage;
     }
 
     public SendMessage startMenu(Update update) {
@@ -40,8 +31,7 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Здравствуйте выберете пункт для начала работы" );
-
-        return startMenu( update, sendMessage );
+        return startMenu( sendMessage );
     }
 
     public SendMessage infoMenu(Update update) {
@@ -56,7 +46,6 @@ public class MessageUtils {
                 " Спасибо. \n";
         sendMessage.setText( message );
         log.debug( "Info Menu view - ok" );
-
         return sendMessage;
     }
 
@@ -90,11 +79,6 @@ public class MessageUtils {
 
         markup.setKeyboard( rowsInline );
         sendMessage.setReplyMarkup( markup );
-
-        User user = userService.get( update );
-        user.setCommands( ServiceCommands.CURRENCY );
-        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.CURRENCY );
-
         return sendMessage;
     }
 
@@ -109,18 +93,16 @@ public class MessageUtils {
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Выбрана валюта " + currency + " добавьте сумму вхождения" );
         log.debug( "User " + user.getId() + " setCommands " + currency );
-
         return sendMessage;
     }
 
-    public SendMessage innerSum(Update update) {
+    public SendMessage setInnerSum(Update update) {
         log.debug( "set Inner Sum " );
         Long chatId = update.getMessage().getFrom().getId();
         double innerSum = Double.parseDouble( update.getMessage().getText() );
         User user = userService.get( update );
         Order order = user.getOrder();
         order.setInnerSum( innerSum );
-
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
@@ -169,7 +151,6 @@ public class MessageUtils {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId( String.valueOf( chatId ) );
         sendMessage.setText( "Время сессии истекло начните с команды /start" );
-
         return sendMessage;
     }
 
@@ -181,7 +162,7 @@ public class MessageUtils {
         }
     }
 
-    private SendMessage startMenu(Update update, SendMessage sendMessage) {
+    private SendMessage startMenu(SendMessage sendMessage) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
@@ -202,9 +183,6 @@ public class MessageUtils {
         markup.setKeyboard( rowsInline );
         sendMessage.setReplyMarkup( markup );
         log.debug( "Start Menu view - ok" );
-        User user = userService.get( update );
-        user.setCommands( ServiceCommands.START );
-        log.debug( "User " + user.getId() + " setCommands " + ServiceCommands.START );
         return sendMessage;
     }
 }
